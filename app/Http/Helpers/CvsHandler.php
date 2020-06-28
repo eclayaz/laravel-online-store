@@ -17,7 +17,7 @@ class CvsHandler
      *
      * @throws Exception
      */
-    public static function read($file, $keys, $limit = 100, $offset = 0)
+    public static function getAll($file, $keys, $limit = 100, $offset = 0)
     {
         $items = [];
         $fileHandle = fopen($file, "r");
@@ -47,7 +47,7 @@ class CvsHandler
     {
         $withKeys = [];
         foreach ($data as $key => $item) {
-            $withKeys[$keys[$key]] = $item;
+            $withKeys[$keys[$key]] = trim($item);
         }
         return $withKeys;
     }

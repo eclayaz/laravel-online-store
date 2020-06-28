@@ -2,29 +2,44 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Helpers\CvsHandler;
+use Exception;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
     public function index()
     {
-//        $file = public_path('files/test.csv');
-//        var_dump($file);
-
-        $csvFileName = "product.csv";
-        $csvFile = storage_path('app/csv/' . $csvFileName);
-        $dd = $this->readCSV($csvFile,array('delimiter' => ','));
-
-        return $dd;
-    }
-
-    public function readCSV($csvFile, $array)
-    {
-        $file_handle = fopen($csvFile, 'r');
-        while (!feof($file_handle)) {
-            $line_of_text[] = fgetcsv($file_handle, 0, $array['delimiter']);
+        try {
+            $products = $this->getProducts(1);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Sorry, something went wrong!'
+            ], $e->getCode());
         }
-        fclose($file_handle);
-        return $line_of_text;
+
+        return response()->json($products, 200);
     }
+
+    /**
+     * @param int $page
+     * @return array|string[]
+     * @throws Exception
+     */
+    private function getProducts($page = 1)
+    {
+        $file = storage_path('app/csv/product.csv');
+        $itemsPerPage = 100;
+        $offset = ($page - 1) * $itemsPerPage + 1;
+        $keys = ['code', 'price', 'size', 'image'];
+        return CvsHandler::getAll($file, $keys, $itemsPerPage, $offset);
+    }
+
+    private function fillAdditionalData($lang)
+    {
+        // loop through all
+        // add data
+        // format nums
+    }
+
 }
