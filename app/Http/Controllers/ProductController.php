@@ -19,7 +19,7 @@ class ProductController extends Controller
                 'error' => 'Sorry, something went wrong!'
             ], $e->getCode());
         }
-//        return response()->json(CurrencyManipulator::convertTo('CAD', 12.4444), 200);
+
         return response()->json($products, 200);
     }
 
@@ -39,16 +39,23 @@ class ProductController extends Controller
 
     private function fillAdditionalData($products, $lang)
     {
+        $file = storage_path('app/csv/product_us.csv');
+        $keys = [1 => 'name', 2 => 'category', 3 => 'subcategory'];
         $exchangeRate = CurrencyManipulator::getExchangeRate($lang);
         foreach ($products as $key => $product) {
             $convertedPrice = CurrencyManipulator::convertTo($exchangeRate, $product['price']);
             $formattedPrice = CurrencyManipulator::formatPrice($lang, $convertedPrice);
 
-            $products[$key]['price'] = $convertedPrice;
-            $products[$key]['displayPrice'] = $formattedPrice;
+            $productAdditionalData = [];
+            try {
+                $productAdditionalData = CvsHandler::findRecord($file, [0 => $product['code']], $keys);
+            } catch (Exception $e) {}
+            $productAdditionalData['price'] = $convertedPrice;
+            $productAdditionalData['displayPrice'] = $formattedPrice;
+            
+            $products[$key] = array_merge($products[$key], $productAdditionalData);
         }
         // add data
-        // format nums
 
         return $products;
     }
