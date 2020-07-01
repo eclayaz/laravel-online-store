@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Helpers\CurrencyManipulator;
 use App\Http\Helpers\CvsHandler;
 use Exception;
 use Illuminate\Http\Request;
@@ -12,12 +13,13 @@ class ProductController extends Controller
     {
         try {
             $products = $this->getProducts(1);
+            $products = $this->fillAdditionalData($products, 'IDR');
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'Sorry, something went wrong!'
             ], $e->getCode());
         }
-
+//        return response()->json(CurrencyManipulator::convertTo('CAD', 12.4444), 200);
         return response()->json($products, 200);
     }
 
@@ -35,11 +37,19 @@ class ProductController extends Controller
         return CvsHandler::getAll($file, $keys, $itemsPerPage, $offset);
     }
 
-    private function fillAdditionalData($lang)
+    private function fillAdditionalData($products, $lang)
     {
-        // loop through all
+        $exchangeRate = CurrencyManipulator::getExchangeRate($lang);
+        foreach ($products as $key => $product) {
+            $convertedPrice = CurrencyManipulator::convertTo($exchangeRate, $product['price']);
+            $formattedPrice = CurrencyManipulator::formatPrice($lang, $convertedPrice);
+
+            $products[$key]['price'] = $convertedPrice;
+            $products[$key]['displayPrice'] = $formattedPrice;
+        }
         // add data
         // format nums
-    }
 
+        return $products;
+    }
 }

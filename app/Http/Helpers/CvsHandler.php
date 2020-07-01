@@ -26,9 +26,9 @@ class CvsHandler
         }
 
         $i = 0;
+        fseek($fileHandle, $offset);
         while (!feof($fileHandle)) {
-            fseek($fileHandle, $offset);
-            $items[] = self::fillDataDataWithKeys(fgetcsv($fileHandle), $keys);;
+            $items[] = self::fillDataDataWithKeys(fgetcsv($fileHandle), $keys);
 
             if (++$i >= $limit) {
                 break;
