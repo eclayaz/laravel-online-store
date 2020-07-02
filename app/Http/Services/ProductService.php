@@ -18,7 +18,7 @@ final class ProductService
      * @return array|string[]
      * @throws Exception
      */
-    public function getProducts(string $langCode, int $page = 1, int $itemsPerPage = 100) : array
+    public function getProducts(string $langCode = 'us', int $page = 1, int $itemsPerPage = 100): array
     {
         $offset = ($page - 1) * $itemsPerPage;
         $configurations = Configurations::getProductConfigurations($langCode);
@@ -36,7 +36,7 @@ final class ProductService
      * @return array
      * @throws Exception
      */
-    private function fillLangSpecificData(array $products, array $configurations) : array
+    private function fillLangSpecificData(array $products, array $configurations): array
     {
         $exchangeRate = CurrencyManipulator::getExchangeRate($configurations['currencyCode']);
         foreach ($products as $key => $product) {
