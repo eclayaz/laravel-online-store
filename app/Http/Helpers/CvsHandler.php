@@ -63,21 +63,18 @@ class CvsHandler
      */
     public static function findRecord(string $file, array $search, array $keys): array
     {
-        $fileHandle = fopen($file, "r");
-        if ($fileHandle === FALSE) {
-            throw new Exception('Error opening ' . $file, 500);
-        }
+        $fileHandle = new SplFileObject($file, 'r');
 
         $searchKeyword = reset($search);
         $searchIndex = key($search);
-        fseek($fileHandle, 0);
-        while (!feof($fileHandle)) {
-            $data = fgetcsv($fileHandle);
+        $fileHandle->seek(0);
+        while (!$fileHandle->eof()) {
+            $data = $fileHandle->fgetcsv();
             if($searchKeyword === $data[$searchIndex]) {
                 return self::fillDataDataWithKeys($data, $keys);
             }
         }
-        fclose($fileHandle);
+        $fileHandle = null;
         throw new Exception('Additional data not found', 400);
     }
 }
