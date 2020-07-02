@@ -11,7 +11,7 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $langCode = strtolower($request->lang);
+        $langCode = strtolower($request->header('lang'));
         if (empty($langCode)) {
             $langCode = 'us';
         }
@@ -19,7 +19,7 @@ class ProductController extends Controller
         try {
             $languageSpecificDetails = $this->getLanguageSpecificDetails($langCode);
             $products = $this->getProducts(1);
-            $products = $this->fillAdditionalData($products, $langCode, $languageSpecificDetails);
+            $products = $this->fillAdditionalData($products, $languageSpecificDetails);
         } catch (\Exception $e) {
             $statusCode = ($e->getCode() === 0) ? 500 : $e->getCode();
             $message = $e->getMessage() ?: 'Sorry, something went wrong.';
@@ -52,7 +52,7 @@ class ProductController extends Controller
                     'keys' => [1 => 'subcategory', 2 => 'name', 3 => 'category'],
                     'filePath' => sprintf($filePath, 'france'),
                 ];
-            case 'indonesia':
+            case 'bahasa':
                 return [
                     'currencyCode' => 'IDR',
                     'keys' => [1 => 'category', 2 => 'quantity', 3 => 'subcategory', 4 => 'name'],
