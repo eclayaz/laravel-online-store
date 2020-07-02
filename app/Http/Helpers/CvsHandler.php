@@ -7,7 +7,7 @@ namespace App\Http\Helpers;
 use Exception;
 use SplFileObject;
 
-class CvsHandler
+final class CvsHandler
 {
     /**
      * @param string $file
@@ -26,7 +26,7 @@ class CvsHandler
         $i = 0;
         $fileHandle->seek($offset);
         while (!$fileHandle->eof()) {
-            $items[] = self::fillDataDataWithKeys($fileHandle->fgetcsv(), $keys);
+            $items[] = self::fillDataWithKeys($fileHandle->fgetcsv(), $keys);
 
             if (++$i >= $limit) {
                 break;
@@ -41,16 +41,16 @@ class CvsHandler
      * @param array|string[] $keys
      * @return array|string[]
      */
-    private static function fillDataDataWithKeys(array $data, array $keys) : array
+    private static function fillDataWithKeys(array $data, array $keys) : array
     {
-        $withKeys = [];
+        $items = [];
         foreach ($data as $key => $item) {
-            if(!array_key_exists($key, $keys)) {
+            if (!array_key_exists($key, $keys)) {
                 continue;
             }
-            $withKeys[$keys[$key]] = trim($item);
+            $items[$keys[$key]] = trim($item);
         }
-        return $withKeys;
+        return $items;
     }
 
     /**
@@ -71,7 +71,7 @@ class CvsHandler
         while (!$fileHandle->eof()) {
             $data = $fileHandle->fgetcsv();
             if($searchKeyword === $data[$searchIndex]) {
-                return self::fillDataDataWithKeys($data, $keys);
+                return self::fillDataWithKeys($data, $keys);
             }
         }
         $fileHandle = null;

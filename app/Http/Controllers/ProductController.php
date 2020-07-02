@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Enums\Language;
 use App\Http\Services\ProductService;
 use Illuminate\Http\Request;
 
@@ -9,11 +10,7 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $langCode = strtolower($request->header('lang'));
-        if (empty($langCode)) {
-            $langCode = 'us';
-        }
-
+        $langCode = strtolower($request->header('lang', Language::US));
         $page = (int)$request->get('page', 1);
         $limit = (int)$request->get('limit', 100);
 

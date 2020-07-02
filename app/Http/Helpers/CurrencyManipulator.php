@@ -4,6 +4,7 @@
 namespace App\Http\Helpers;
 
 
+use App\Http\Enums\Currency;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
@@ -55,11 +56,11 @@ class CurrencyManipulator
     public static function formatPrice(string $lang, float $price) : string
     {
         switch ($lang) {
-            case 'USD':
+            case Currency::USD:
                 return '$ ' . number_format($price, 2, '.', ',');
-            case 'EUR':
+            case Currency::EUR:
                 return '€ ' . number_format($price, 2, '.', ',');
-            case 'IDR':
+            case Currency::IDR:
                 return 'Rp ' . number_format($price, 0, '.', '.');
         }
 
