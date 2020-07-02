@@ -17,9 +17,9 @@ class ProductController extends Controller
         }
 
         try {
-            $currencyCode = $this->getCurrencyCode($langCode);
+            $languageSpecificDetails = $this->getLanguageSpecificDetails($langCode);
             $products = $this->getProducts(1);
-            $products = $this->fillAdditionalData($products, $langCode, $currencyCode);
+            $products = $this->fillAdditionalData($products, $langCode, $languageSpecificDetails);
         } catch (\Exception $e) {
             $statusCode = ($e->getCode() === 0) ? 500 : $e->getCode();
             $message = $e->getMessage() ?: 'Sorry, something went wrong.';
@@ -31,15 +31,33 @@ class ProductController extends Controller
         return response()->json($products, 200);
     }
 
-    private function getCurrencyCode($lang)
+    /**
+     * @param string $lang
+     * @return array
+     * @throws Exception
+     */
+    private function getLanguageSpecificDetails(string $lang) : array
     {
+        $filePath = storage_path('app/csv/product_%s.csv');
         switch (strtolower($lang)) {
             case 'us':
-                return 'USD';
+                return [
+                    'currencyCode' => 'USD',
+                    'keys' => [1 => 'name', 2 => 'category', 3 => 'subcategory'],
+                    'filePath' => sprintf($filePath, 'us'),
+                ];
             case 'france':
-                return 'EUR';
+                return [
+                    'currencyCode' => 'EUR',
+                    'keys' => [1 => 'subcategory', 2 => 'name', 3 => 'category'],
+                    'filePath' => sprintf($filePath, 'france'),
+                ];
             case 'indonesia':
-                return 'IDR';
+                return [
+                    'currencyCode' => 'IDR',
+                    'keys' => [1 => 'category', 2 => 'quantity', 3 => 'subcategory', 4 => 'name'],
+                    'filePath' => sprintf($filePath, 'indonesia'),
+                ];
         }
 
         throw new Exception('Unsupported language', 400);
@@ -50,7 +68,7 @@ class ProductController extends Controller
      * @return array|string[]
      * @throws Exception
      */
-    private function getProducts($page = 1)
+    private function getProducts(int $page = 1) : array
     {
         $file = storage_path('app/csv/product.csv');
         $itemsPerPage = 100;
@@ -61,23 +79,20 @@ class ProductController extends Controller
 
     /**
      * @param array $products
-     * @param string $langCode
-     * @param string $lang
+     * @param array $languageSpecificDetails
      * @return array
      * @throws Exception
      */
-    private function fillAdditionalData($products, $langCode, $lang)
+    private function fillAdditionalData(array $products, array $languageSpecificDetails) : array
     {
-        $file = storage_path('app/csv/product_'.$langCode.'.csv');
-        $keys = [1 => 'name', 2 => 'category', 3 => 'subcategory'];
-        $exchangeRate = CurrencyManipulator::getExchangeRate($lang);
+        $exchangeRate = CurrencyManipulator::getExchangeRate($languageSpecificDetails['currencyCode']);
         foreach ($products as $key => $product) {
             $convertedPrice = CurrencyManipulator::convertTo($exchangeRate, $product['price']);
-            $formattedPrice = CurrencyManipulator::formatPrice($lang, $convertedPrice);
+            $formattedPrice = CurrencyManipulator::formatPrice($languageSpecificDetails['currencyCode'], $convertedPrice);
 
             $productAdditionalData = [];
             try {
-                $productAdditionalData = CvsHandler::findRecord($file, [0 => $product['code']], $keys);
+                $productAdditionalData = CvsHandler::findRecord($languageSpecificDetails['filePath'], [0 => $product['code']], $languageSpecificDetails['keys']);
             } catch (Exception $e) {
             }
             $productAdditionalData['price'] = $convertedPrice;
