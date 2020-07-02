@@ -27,6 +27,6 @@ class ProductController extends Controller
             ], $statusCode);
         }
 
-        return response()->json($products, 200);
+        return response()->json(['data' => $products], 200);
     }
 }
