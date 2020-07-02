@@ -16,9 +16,12 @@ class ProductController extends Controller
             $langCode = 'us';
         }
 
+        $page = (int)$request->get('page', 1);
+        $limit = (int)$request->get('limit', 100);
+
         try {
             $languageSpecificDetails = $this->getLanguageSpecificDetails($langCode);
-            $products = $this->getProducts(1);
+            $products = $this->getProducts($page, $limit);
             $products = $this->fillAdditionalData($products, $languageSpecificDetails);
         } catch (\Exception $e) {
             $statusCode = ($e->getCode() === 0) ? 500 : $e->getCode();
@@ -65,14 +68,14 @@ class ProductController extends Controller
 
     /**
      * @param int $page
+     * @param int $itemsPerPage
      * @return array|string[]
      * @throws Exception
      */
-    private function getProducts(int $page = 1) : array
+    private function getProducts(int $page = 1, int $itemsPerPage = 100) : array
     {
         $file = storage_path('app/csv/product.csv');
-        $itemsPerPage = 100;
-        $offset = ($page - 1) * $itemsPerPage + 1;
+        $offset = ($page - 1) * $itemsPerPage;
         $keys = ['code', 'price', 'size', 'image'];
         return CvsHandler::getAll($file, $keys, $itemsPerPage, $offset);
     }
@@ -92,7 +95,10 @@ class ProductController extends Controller
 
             $productAdditionalData = [];
             try {
-                $productAdditionalData = CvsHandler::findRecord($languageSpecificDetails['filePath'], [0 => $product['code']], $languageSpecificDetails['keys']);
+                $productAdditionalData = CvsHandler::findRecord(
+                    $languageSpecificDetails['filePath'],
+                    [0 => $product['code']], $languageSpecificDetails['keys']
+                );
             } catch (Exception $e) {
             }
             $productAdditionalData['price'] = $convertedPrice;
